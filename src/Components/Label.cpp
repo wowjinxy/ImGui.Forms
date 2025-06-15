@@ -13,6 +13,22 @@ namespace ImGuiForms {
         text = newText;
     }
 
+    const std::string& Label::GetText() const {
+        return text;
+    }
+
+    void Label::SetTextColor(const ImVec4& color) {
+        textColor = color;
+    }
+
+    const ImVec4& Label::GetTextColor() const {
+        return textColor;
+    }
+
+    void Label::SetSize(const Size& size) {
+        labelSize = size;
+    }
+
     Size Label::GetSize() const {
         return labelSize;
     }
@@ -22,8 +38,8 @@ namespace ImGuiForms {
             return;
         }
 
-        // Simple approach: use rectangle's x,y directly
-        ImVec2 textPos(contentRect.x, contentRect.y);
+        // Use the TopLeft method and convert to ImVec2
+        ImVec2 textPos = contentRect.TopLeft().ToImVec2();
 
         // Get the current window's draw list
         ImDrawList* drawList = ImGui::GetWindowDrawList();

@@ -168,7 +168,7 @@
     <ClInclude Include="include\ImGuiForms\Core\Size.h" />
     <ClInclude Include="include\ImGuiForms\ImGuiForms.h" />
     <ClInclude Include="include\SDL.h" />
-    <ClInclude Include="src\Core\Size.h" />
+    <ClInclude Include="src\Core\Size.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Components\Label.cpp" />

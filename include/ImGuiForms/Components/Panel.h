@@ -24,41 +24,31 @@ namespace ImGuiForms {
          * @brief Constructs a Panel with optional content
          * @param child The child component to contain (takes ownership)
          */
-        explicit Panel(std::unique_ptr<Component> child = nullptr)
-            : content(std::move(child)) {
-        }
+        Panel(std::unique_ptr<Component> content);
 
         /**
          * @brief Sets the child component (takes ownership)
          * @param child The new child component
          */
-        void SetContent(std::unique_ptr<Component> child) {
-            content = std::move(child);
-        }
+        void SetContent(std::unique_ptr<Component> child);
 
         /**
          * @brief Gets a pointer to the child component (retains ownership)
          * @return Pointer to child component, or nullptr if no child
          */
-        Component* GetContent() const {
-            return content.get();
-        }
+        Component* GetContent();
 
         /**
          * @brief Sets the size of this panel
          * @param size The size specification
          */
-        void SetSize(const Size& size) {
-            panelSize = size;
-        }
+        void SetSize(const Size& size);
 
         /**
          * @brief Gets the size specification for this panel
          * @return The size specification
          */
-        Size GetSize() const override {
-            return panelSize;
-        }
+        Size GetSize();
 
     protected:
         /**

@@ -1,358 +1,139 @@
-/**
- * @file Component.cpp
- * @brief Implementation of the Component base class and Framework utilities
- */
-
 #include "ImGuiForms/Core/Component.h"
-#include <iostream>
-#include <unordered_set>
+#include "ImGuiForms/Core/Point.h"
 #include <algorithm>
-#include <typeinfo>
-
-#ifdef __GNUG__
-#include <cxxabi.h>
-#include <cstdlib>
-#endif
 
 namespace ImGuiForms {
 
-    // Static member definitions
-    int Component::nextId = 0;
-    bool Framework::initialized = false;
-
-    // Internal framework state
-    namespace Internal {
-        // Track components for cleanup and validation
-        static std::unordered_set<int> activeComponentIds;
-        static std::unordered_set<int> frameUsedIds;
-
-        // Performance tracking
-        static size_t frameComponentCount = 0;
-        static size_t totalComponentsCreated = 0;
-
-        // Debug mode flag
-        static bool debugMode = false;
-    }
-
-    // ============================================================================
-    // Component Implementation
-    // ============================================================================
-
-    Component::Component() : componentId(++nextId) {
-        Internal::activeComponentIds.insert(componentId);
-        Internal::totalComponentsCreated++;
-
-        if (Internal::debugMode) {
-            std::cout << "[ImGuiForms] Component " << componentId << " created" << std::endl;
-        }
+    Component::Component()
+        : enabled(true)
+        , visible(true)
+    {
     }
 
     Component::~Component() {
-        Internal::activeComponentIds.erase(componentId);
+        // Default destructor
+    }
 
-        if (Internal::debugMode) {
-            std::cout << "[ImGuiForms] Component " << componentId << " destroyed" << std::endl;
-        }
+    void Component::SetEnabled(bool enabled) {
+        this->enabled = enabled;
+    }
+
+    bool Component::IsEnabled() const {
+        return enabled;
+    }
+
+    void Component::SetVisible(bool visible) {
+        this->visible = visible;
+    }
+
+    bool Component::IsVisible() const {
+        return visible;
+    }
+
+    void Component::SetDragDropCallback(const DragDropCallback& callback) {
+        onDragDrop = callback;
     }
 
     void Component::Update(const Rectangle& contentRect) {
-        // Handle visibility
         if (!visible) {
-            tabInactive = false;
             return;
         }
 
-        // Track this component as used this frame
-        Internal::frameUsedIds.insert(componentId);
-        Internal::frameComponentCount++;
+        // Handle mouse input
+        bool wasMouseHandled = HandleMouseInput(contentRect);
 
-        // Begin ImGui ID scope
-        ImGui::PushID(componentId);
-
-        try {
-            // Apply component-specific styles
-            ApplyStyles();
-
-            // Render the component content
-            UpdateInternal(contentRect);
-
-            // Remove component-specific styles
-            RemoveStyles();
-        }
-        catch (const std::exception& e) {
-            // Log error but don't crash the application
-            std::cerr << "[ImGuiForms] Error in component " << componentId
-                << ": " << e.what() << std::endl;
-        }
-
-        // End ImGui ID scope
-        ImGui::PopID();
-
-        // Draw border if requested
-        if (showBorder) {
-            auto* drawList = ImGui::GetWindowDrawList();
-            ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-            drawList->AddRect(contentRect.TopLeft(), contentRect.BottomRight(),
-                ImGui::GetColorU32(borderColor));
-        }
-
-        // Handle drag and drop
-        if (allowDragDrop && enabled) {
-            HandleDragDrop(contentRect);
-        }
-
-        tabInactive = false;
-    }
-
-    void Component::HandleDragDrop(const Rectangle& contentRect) {
-        // This is a placeholder implementation
-        // In a real implementation, you'd integrate with your platform's drag-drop system
-
-        // Check if mouse is over this component
-        ImVec2 mousePos = ImGui::GetMousePos();
-        if (contentRect.Contains(mousePos)) {
-            // Example: Handle file drops
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FILES")) {
-                    // Handle the dropped files
-                    std::vector<DragDropEvent> events;
-
-                    // Parse the payload (this would be platform-specific)
-                    const char* data = static_cast<const char*>(payload->Data);
-                    std::string filePath(data, payload->DataSize);
-
-                    events.push_back({ filePath });
-                    OnDragDrop(events);
-                }
-                ImGui::EndDragDropTarget();
-            }
-        }
-    }
-
-    int Component::GetDimension(const SizeValue& sizeValue, int maxValue, float correction) {
-        if (sizeValue.IsAbsolute()) {
-            return static_cast<int>(std::min(sizeValue.value, static_cast<float>(maxValue)));
-        }
-
-        return static_cast<int>(std::floor(sizeValue.value * maxValue * correction));
-    }
-
-    void Component::OnDragDrop(const std::vector<DragDropEvent>& events) {
-        if (onDragDrop) {
-            onDragDrop(this, events);
-        }
-    }
-
-    bool Component::ValidateHierarchy() const {
-        // Basic validation - check if component ID is still active
-        return Internal::activeComponentIds.find(componentId) != Internal::activeComponentIds.end();
-    }
-
-    // ============================================================================
-    // Framework Implementation
-    // ============================================================================
-
-    void Framework::Initialize() {
-        if (initialized) {
-            std::cerr << "[ImGuiForms] Framework already initialized!" << std::endl;
-            return;
-        }
-
-        std::cout << "[ImGuiForms] Initializing framework v" << Version::String << std::endl;
-
-        // Initialize internal systems
-        Internal::activeComponentIds.clear();
-        Internal::frameUsedIds.clear();
-        Internal::frameComponentCount = 0;
-        Internal::totalComponentsCreated = 0;
-
-        // TODO: Initialize other systems as they're implemented
-        // - Theme manager
-        // - Font manager  
-        // - Event dispatcher
-        // - Resource manager
-
-        initialized = true;
-        std::cout << "[ImGuiForms] Framework initialized successfully" << std::endl;
-    }
-
-    void Framework::Shutdown() {
-        if (!initialized) {
-            std::cerr << "[ImGuiForms] Framework not initialized!" << std::endl;
-            return;
-        }
-
-        std::cout << "[ImGuiForms] Shutting down framework..." << std::endl;
-
-        // Print statistics
-        std::cout << "[ImGuiForms] Statistics:" << std::endl;
-        std::cout << "  Total components created: " << Internal::totalComponentsCreated << std::endl;
-        std::cout << "  Active components: " << Internal::activeComponentIds.size() << std::endl;
-
-        // Warn about leaked components
-        if (!Internal::activeComponentIds.empty()) {
-            std::cerr << "[ImGuiForms] Warning: " << Internal::activeComponentIds.size()
-                << " components still active at shutdown!" << std::endl;
-
-            if (Internal::debugMode) {
-                std::cerr << "  Active component IDs: ";
-                for (int id : Internal::activeComponentIds) {
-                    std::cerr << id << " ";
-                }
-                std::cerr << std::endl;
-            }
-        }
-
-        // Cleanup internal state
-        Internal::activeComponentIds.clear();
-        Internal::frameUsedIds.clear();
-
-        // TODO: Cleanup other systems
-
-        initialized = false;
-        std::cout << "[ImGuiForms] Framework shutdown complete" << std::endl;
-    }
-
-    void Framework::BeginFrame() {
-        if (!initialized) {
-            std::cerr << "[ImGuiForms] Framework not initialized! Call Framework::Initialize() first." << std::endl;
-            return;
-        }
-
-        // Reset frame-specific tracking
-        Internal::frameUsedIds.clear();
-        Internal::frameComponentCount = 0;
-
-        // TODO: Frame-specific initialization
-        // - Reset input state
-        // - Update animations
-        // - Prepare theme system
-    }
-
-    void Framework::EndFrame() {
-        if (!initialized) {
-            return;
-        }
-
-        // TODO: Frame-specific cleanup
-        // - Cleanup unused resources
-        // - Update performance metrics
-        // - Process deferred operations
-
-        // Optional: Garbage collection of unused IDs
-        // (In a more sophisticated implementation, you might want to
-        //  recycle component IDs that haven't been used in many frames)
-    }
-
-    void Framework::SetDebugMode(bool enabled) {
-        Internal::debugMode = enabled;
-
+        // Handle drag and drop if enabled
         if (enabled) {
-            std::cout << "[ImGuiForms] Debug mode enabled" << std::endl;
+            HandleDragDrop();
+        }
+
+        // Call the derived class implementation
+        if (enabled) {
+            UpdateInternal(contentRect);
+        }
+
+        // Debug rendering (if needed)
+#ifdef _DEBUG
+// Uncomment to enable debug borders:
+// RenderDebugBorder(contentRect);
+#endif
+    }
+
+    int Component::GetContentWidth(int parentWidth, int parentHeight, float layoutCorrection) const {
+        // Default implementation - override in derived classes
+        return static_cast<int>(static_cast<float>(parentWidth) * layoutCorrection);
+    }
+
+    int Component::GetContentHeight(int parentWidth, int parentHeight, float layoutCorrection) const {
+        // Default implementation - override in derived classes  
+        return static_cast<int>(static_cast<float>(parentHeight) * layoutCorrection);
+    }
+
+    float Component::GetDimension(const Size& sizeSpec, float parentDimension, float contentDimension) const {
+        // Handle special size specifications
+        if (sizeSpec == Size::Content) {
+            return contentDimension;
+        }
+        else if (sizeSpec == Size::Parent) {
+            return parentDimension;
+        }
+        else if (sizeSpec == Size::Fill) {
+            return parentDimension;
         }
         else {
-            std::cout << "[ImGuiForms] Debug mode disabled" << std::endl;
+            // Use explicit size (use width as the dimension value)
+            return sizeSpec.width;
         }
     }
 
-    bool Framework::IsDebugMode() {
-        return Internal::debugMode;
-    }
-
-    Framework::Statistics Framework::GetStatistics() {
-        Statistics stats;
-        stats.activeComponents = Internal::activeComponentIds.size();
-        stats.totalComponentsCreated = Internal::totalComponentsCreated;
-        stats.frameComponentCount = Internal::frameComponentCount;
-        stats.memoryUsageBytes = sizeof(Component) * Internal::activeComponentIds.size();
-
-        return stats;
-    }
-
-    void Framework::PrintStatistics() {
-        auto stats = GetStatistics();
-
-        std::cout << "[ImGuiForms] Runtime Statistics:" << std::endl;
-        std::cout << "  Active components: " << stats.activeComponents << std::endl;
-        std::cout << "  Total created: " << stats.totalComponentsCreated << std::endl;
-        std::cout << "  This frame: " << stats.frameComponentCount << std::endl;
-        std::cout << "  Estimated memory: " << stats.memoryUsageBytes << " bytes" << std::endl;
-    }
-
-    // ============================================================================
-    // Utility Functions
-    // ============================================================================
-
-    namespace Utils {
-
-        std::string ComponentTypeToString(const Component* component) {
-            if (!component) {
-                return "nullptr";
-            }
-
-            // Use RTTI to get component type name
-            // This is mainly for debugging purposes
-            const char* typeName = typeid(*component).name();
-
-            // Try to demangle the name (platform-specific)
-#ifdef __GNUG__
-            int status = 0;
-            char* demangled = abi::__cxa_demangle(typeName, 0, 0, &status);
-            if (status == 0 && demangled) {
-                std::string result(demangled);
-                free(demangled);
-
-                // Extract just the class name (remove namespace)
-                size_t lastColonPos = result.find_last_of(':');
-                if (lastColonPos != std::string::npos) {
-                    result = result.substr(lastColonPos + 1);
-                }
-
-                return result;
-            }
-#endif
-
-            // Fallback to mangled name
-            return std::string(typeName);
+    void Component::RenderDebugBorder(const Rectangle& rect) {
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        if (drawList == nullptr) {
+            return;
         }
 
-        void DumpComponentHierarchy(const Component* root, int depth) {
-            if (!root) {
-                return;
-            }
+        // Convert Rectangle to ImVec2 for ImGui
+        ImVec2 topLeft(rect.x, rect.y);
+        ImVec2 bottomRight(rect.x + rect.width, rect.y + rect.height);
 
-            // Print indentation
-            for (int i = 0; i < depth; ++i) {
-                std::cout << "  ";
-            }
+        // Draw debug border
+        ImU32 borderColor = IM_COL32(255, 0, 0, 128); // Semi-transparent red
+        drawList->AddRect(topLeft, bottomRight, borderColor, 0.0f, ImDrawFlags_None, 1.0f);
+    }
 
-            // Print component info
-            std::cout << "- " << ComponentTypeToString(root)
-                << " (ID: " << root->GetId()
-                << ", Visible: " << (root->visible ? "true" : "false")
-                << ", Enabled: " << (root->enabled ? "true" : "false")
-                << ")" << std::endl;
-
-            // TODO: Recursively dump children when container components are implemented
-            // For now, this just prints the single component
+    bool Component::HandleMouseInput(const Rectangle& rect) {
+        if (!enabled) {
+            return false;
         }
 
-        bool ValidateComponentTree(const Component* root) {
-            if (!root) {
-                return true;
-            }
+        ImVec2 mousePos = ImGui::GetMousePos();
 
-            // Validate this component
-            if (!root->ValidateHierarchy()) {
-                std::cerr << "[ImGuiForms] Invalid component found: ID " << root->GetId() << std::endl;
-                return false;
-            }
+        // Convert ImVec2 to Point for Contains check
+        Point mousePt(mousePos.x, mousePos.y);
 
-            // TODO: Validate children when container components are implemented
+        bool isHovered = rect.Contains(mousePt);
 
+        if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            // Handle mouse click
             return true;
         }
 
-    } // namespace Utils
+        return isHovered;
+    }
+
+    void Component::HandleDragDrop() {
+        if (!onDragDrop) {
+            return;
+        }
+
+        // Handle drag and drop operations
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_TEXT")) {
+                std::string droppedText(static_cast<const char*>(payload->Data), payload->DataSize);
+                onDragDrop(droppedText);
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
 
 } // namespace ImGuiForms
