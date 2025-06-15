@@ -153,4 +153,13 @@ namespace ImGuiForms {
         return label;
     }
 
+    /**
+     * @brief Helper function to create a colored Label with specific size
+     * @param text The text to display
+     * @param size The size specification for the label
+     * @param color The text color
+     * @return Unique pointer to the new Label
+     */
+    std::unique_ptr<Label> CreateLabel(const std::string& text, const Size& size, const ImVec4& color);
+
 } // namespace ImGuiForms

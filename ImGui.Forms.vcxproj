@@ -168,6 +168,12 @@
     <ClInclude Include="include\ImGuiForms\ImGuiForms.h" />
     <ClInclude Include="include\SDL.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Components\Label.cpp" />
+    <ClCompile Include="src\Components\Panel.cpp" />
+    <ClCompile Include="src\core\Component.cpp" />
+    <ClCompile Include="src\Core\Rectangle.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

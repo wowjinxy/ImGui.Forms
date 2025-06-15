@@ -14,7 +14,6 @@ namespace ImGuiForms {
 // Include our types
 #include "Size.h"
 #include "Rectangle.h"
-#include <string>
 
 namespace ImGuiForms {
 
@@ -95,43 +94,7 @@ namespace ImGuiForms {
          * @brief Updates and renders this component
          * @param contentRect The rectangle area to draw the component in
          */
-        void Update(const Rectangle& contentRect) {
-            // Handle visibility
-            if (!visible) {
-                tabInactive = false;
-                return;
-            }
-
-            // Begin ImGui ID scope
-            ImGui::PushID(componentId);
-
-            // Apply component-specific styles
-            ApplyStyles();
-
-            // Render the component content
-            UpdateInternal(contentRect);
-
-            // Remove component-specific styles
-            RemoveStyles();
-
-            // End ImGui ID scope
-            ImGui::PopID();
-
-            // Draw border if requested
-            if (showBorder) {
-                auto* drawList = ImGui::GetWindowDrawList();
-                drawList->AddRect(contentRect.TopLeft(), contentRect.BottomRight(),
-                    ImGui::GetColorU32(ImGuiCol_Border));
-            }
-
-            // Handle drag and drop
-            if (allowDragDrop && enabled) {
-                // TODO: Implement drag drop detection
-                // This would need to be provided by the application framework
-            }
-
-            tabInactive = false;
-        }
+        void Update(const Rectangle& contentRect);
 
         /**
          * @brief Checks if the current ImGui item is hovered
@@ -163,19 +126,19 @@ namespace ImGuiForms {
         }
 
         /**
+         * @brief Validates that this component is in a valid state
+         * @return true if component is valid, false otherwise
+         */
+        bool ValidateHierarchy() const;
+
+        /**
          * @brief Calculates pixel value from SizeValue
          * @param sizeValue The size value to calculate
          * @param maxValue The maximum available space
          * @param correction Layout correction factor
          * @return Calculated pixel value
          */
-        static int GetDimension(const SizeValue& sizeValue, int maxValue, float correction = 1.0f) {
-            if (sizeValue.IsAbsolute()) {
-                return static_cast<int>(std::min(sizeValue.value, static_cast<float>(maxValue)));
-            }
-
-            return static_cast<int>(std::floor(sizeValue.value * maxValue * correction));
-        }
+        static int GetDimension(const SizeValue& sizeValue, int maxValue, float correction = 1.0f);
 
     protected:
         /**
@@ -233,21 +196,54 @@ namespace ImGuiForms {
          * @brief Triggers the drag drop event
          * @param events The drag drop events to handle
          */
-        void OnDragDrop(const std::vector<DragDropEvent>& events) {
-            if (onDragDrop) {
-                onDragDrop(this, events);
-            }
-        }
+        void OnDragDrop(const std::vector<DragDropEvent>& events);
+
+        /**
+         * @brief Handles platform-specific drag and drop detection
+         * @param contentRect The component's content rectangle
+         */
+        void HandleDragDrop(const Rectangle& contentRect);
 
         friend class TabControl;  // Allow TabControl to call SetTabInactiveInternal
     };
 
-    // Static member definition
-    inline int Component::nextId = 0;
+    // Static member declaration (definition in .cpp)
+    // Note: No longer inline since it's defined in Component.cpp
 
     // Placeholder for DragDropEvent - would need to be implemented based on platform
     struct DragDropEvent {
         std::string filePath;  // Example - actual implementation depends on platform
+        // Could also include:
+        // - File type/MIME type
+        // - File size
+        // - Mouse position
+        // - Modifier keys
     };
+
+    /**
+     * @brief Utility functions for component debugging and inspection
+     */
+    namespace Utils {
+        /**
+         * @brief Get a human-readable string representation of a component's type
+         * @param component The component to inspect
+         * @return String representation of the component type
+         */
+        std::string ComponentTypeToString(const Component* component);
+
+        /**
+         * @brief Print the component hierarchy to console for debugging
+         * @param root The root component to start from
+         * @param depth Current depth in the hierarchy (for indentation)
+         */
+        void DumpComponentHierarchy(const Component* root, int depth = 0);
+
+        /**
+         * @brief Validate that a component tree is in a consistent state
+         * @param root The root component to validate
+         * @return true if the tree is valid, false if corruption is detected
+         */
+        bool ValidateComponentTree(const Component* root);
+    }
 
 } // namespace ImGuiForms

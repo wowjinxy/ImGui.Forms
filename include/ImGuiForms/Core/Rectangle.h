@@ -1,6 +1,8 @@
 #pragma once
 #include <imgui.h>
 #include <functional>
+#include <vector>
+#include <string>
 
 namespace ImGuiForms {
 
@@ -114,6 +116,188 @@ namespace ImGuiForms {
                 return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
             }
         };
+
+        /**
+         * @brief Utility functions for rectangle layout and arrangement
+         */
+        namespace RectangleUtils {
+            /**
+             * @brief Arrange items in a grid layout within a container
+             * @param container The container rectangle
+             * @param itemCount Number of items to arrange
+             * @param preferredColumns Preferred number of columns (0 for auto)
+             * @param spacing Spacing between items
+             * @param padding Padding around the container edges
+             * @return Vector of rectangles for each item
+             */
+            std::vector<Rectangle> ArrangeInGrid(const Rectangle& container,
+                int itemCount,
+                int preferredColumns = 0,
+                const ImVec2& spacing = ImVec2(5, 5),
+                const ImVec2& padding = ImVec2(10, 10));
+
+            /**
+             * @brief Arrange items in a horizontal or vertical line
+             * @param container The container rectangle
+             * @param itemCount Number of items to arrange
+             * @param horizontal True for horizontal, false for vertical arrangement
+             * @param spacing Spacing between items
+             * @param padding Padding around the container edges
+             * @return Vector of rectangles for each item
+             */
+            std::vector<Rectangle> ArrangeInLine(const Rectangle& container,
+                int itemCount,
+                bool horizontal = true,
+                const ImVec2& spacing = ImVec2(5, 5),
+                const ImVec2& padding = ImVec2(10, 10));
+
+            /**
+             * @brief Calculate the bounding box that contains all given rectangles
+             * @param rectangles Vector of rectangles to bound
+             * @return Bounding rectangle
+             */
+            Rectangle CalculateBoundingBox(const std::vector<Rectangle>& rectangles);
+        }
+
+        // ========================================================================
+        // Advanced Geometric Operations (implemented in Rectangle.cpp)
+        // ========================================================================
+
+        /**
+         * @brief Calculate the union of this rectangle with another
+         */
+        Rectangle Union(const Rectangle& other) const;
+
+        /**
+         * @brief Calculate the intersection of this rectangle with another
+         */
+        Rectangle Intersection(const Rectangle& other) const;
+
+        /**
+         * @brief Calculate the area of the rectangle
+         */
+        float Area() const;
+
+        /**
+         * @brief Calculate the perimeter of the rectangle
+         */
+        float Perimeter() const;
+
+        /**
+         * @brief Calculate the aspect ratio (width/height)
+         */
+        float AspectRatio() const;
+
+        /**
+         * @brief Fit this rectangle inside a container, optionally maintaining aspect ratio
+         */
+        Rectangle FitInside(const Rectangle& container, bool maintainAspectRatio = true) const;
+
+        /**
+         * @brief Center this rectangle within a container
+         */
+        Rectangle CenterIn(const Rectangle& container) const;
+
+        /**
+         * @brief Clamp this rectangle to stay within bounds
+         */
+        Rectangle ClampTo(const Rectangle& bounds) const;
+
+        // ========================================================================
+        // Layout Operations
+        // ========================================================================
+
+        /**
+         * @brief Subdivide rectangle horizontally using ratios
+         */
+        std::vector<Rectangle> SubdivideHorizontal(const std::vector<float>& ratios) const;
+
+        /**
+         * @brief Subdivide rectangle vertically using ratios
+         */
+        std::vector<Rectangle> SubdivideVertical(const std::vector<float>& ratios) const;
+
+        /**
+         * @brief Get a cell from a grid layout
+         */
+        Rectangle CreateGrid(int row, int col, int rows, int cols, int spacing = 0) const;
+
+        // ========================================================================
+        // Alignment Operations
+        // ========================================================================
+
+        Rectangle AlignLeft(const Rectangle& container, int margin = 0) const;
+        Rectangle AlignRight(const Rectangle& container, int margin = 0) const;
+        Rectangle AlignTop(const Rectangle& container, int margin = 0) const;
+        Rectangle AlignBottom(const Rectangle& container, int margin = 0) const;
+        Rectangle AlignCenterHorizontal(const Rectangle& container) const;
+        Rectangle AlignCenterVertical(const Rectangle& container) const;
+
+        // ========================================================================
+        // Distance and Collision
+        // ========================================================================
+
+        /**
+         * @brief Calculate distance to another rectangle
+         */
+        float DistanceTo(const Rectangle& other) const;
+
+        /**
+         * @brief Calculate distance to a point
+         */
+        float DistanceToPoint(const ImVec2& point) const;
+
+        /**
+         * @brief Check if this rectangle completely contains another
+         */
+        bool ContainsRectangle(const Rectangle& other) const;
+
+        // ========================================================================
+        // Transformations
+        // ========================================================================
+
+        /**
+         * @brief Scale rectangle around an origin point
+         */
+        Rectangle Scale(float scaleX, float scaleY, const ImVec2& origin) const;
+
+        /**
+         * @brief Scale rectangle uniformly around its center
+         */
+        Rectangle Scale(float scale) const;
+
+        /**
+         * @brief Rotate rectangle 90 degrees clockwise
+         */
+        Rectangle Rotate90() const;
+
+        // ========================================================================
+        // Utility Functions
+        // ========================================================================
+
+        /**
+         * @brief Convert rectangle to string representation
+         */
+        std::string ToString() const;
+
+        /**
+         * @brief Print rectangle information for debugging
+         */
+        void DebugPrint(const std::string& label = "Rectangle") const;
+
+        // ========================================================================
+        // Static Factory Methods
+        // ========================================================================
+
+        /**
+         * @brief Create rectangle from two corner points
+         */
+        static Rectangle FromTwoPoints(const ImVec2& point1, const ImVec2& point2);
+
+        /**
+         * @brief Create rectangle from center point and dimensions
+         */
+        static Rectangle FromCenter(const ImVec2& center, int width, int height);
     };
 
 } // namespace ImGuiForms
