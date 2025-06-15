@@ -1,6 +1,10 @@
 #pragma once
-#include "ImGuiForms/Core/Component.h"
-#include <string>
+#include <memory>        // For std::unique_ptr
+#include <string>        // For std::string
+#include <imgui.h>       // For ImVec4, etc.
+#include "ImGuiForms/Core/Component.h"   // Base class
+#include "ImGuiForms/Core/Size.h"        // For Size type
+#include "ImGuiForms/Core/Rectangle.h"   // For Rectangle type
 
 namespace ImGuiForms {
 
@@ -21,17 +25,13 @@ namespace ImGuiForms {
          * @brief Constructs a Label with text
          * @param labelText The text to display
          */
-        explicit Label(const std::string& labelText = "")
-            : text(labelText) {
-        }
+        Label(const std::string& text);
 
         /**
          * @brief Sets the text to display
          * @param newText The new text
          */
-        void SetText(const std::string& newText) {
-            text = newText;
-        }
+        void SetText(const std::string& newText);
 
         /**
          * @brief Gets the current text

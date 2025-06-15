@@ -1,19 +1,9 @@
 #pragma once
-#include <imgui.h>
-#include <functional>
-#include <cmath>
-#include <algorithm>
-
-// Forward declarations
-namespace ImGuiForms {
-    struct Size;
-    struct SizeValue;
-    struct Rectangle;
-}
-
-// Include our types
-#include "Size.h"
-#include "Rectangle.h"
+#include <memory>        // For std::unique_ptr
+#include <string>        // For std::string
+#include <imgui.h>       // For ImVec4, etc.
+#include "Rectangle.h"   // Include instead of forward declare
+#include "Size.h"        // Include instead of forward declare
 
 namespace ImGuiForms {
 

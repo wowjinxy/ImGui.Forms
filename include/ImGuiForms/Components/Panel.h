@@ -1,6 +1,10 @@
 #pragma once
-#include "ImGuiForms/Core/Component.h"
-#include <memory>
+#include <memory>        // For std::unique_ptr
+#include <string>        // For std::string
+#include <imgui.h>       // For ImVec4, etc.
+#include "ImGuiForms/Core/Component.h"   // Base class
+#include "ImGuiForms/Core/Size.h"        // For Size type
+#include "ImGuiForms/Core/Rectangle.h"   // For Rectangle type
 
 namespace ImGuiForms {
 

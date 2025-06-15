@@ -2,15 +2,60 @@
  * @file Rectangle.cpp
  * @brief Implementation of advanced Rectangle operations and utilities
  */
-
 #include "ImGuiForms/Core/Rectangle.h"
 #include <algorithm>
+#include <string>
 #include <sstream>
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <imgui.h>
+
+namespace {
+    inline float SafeMin(float a, float b) { return a < b ? a : b; }
+    inline float SafeMax(float a, float b) { return a > b ? a : b; }
+    inline float SafeClamp(float value, float min_val, float max_val) {
+        return SafeMax(min_val, SafeMin(value, max_val));
+    }
+}
 
 namespace ImGuiForms {
+    // Constructors
+    Rectangle::Rectangle() : x(0.0f), y(0.0f), width(0.0f), height(0.0f) {}
+
+    Rectangle::Rectangle(float x, float y, float width, float height)
+        : x(x), y(y), width(width), height(height) {
+    }
+
+    Rectangle::Rectangle(const Point& location, const Size& size)
+        : x(location.x), y(location.y), width(size.width), height(size.height) {
+    }
+
+    // Properties
+    bool Rectangle::IsEmpty() const {
+        return width <= 0.0f || height <= 0.0f;
+    }
+
+    float Rectangle::Area() const {
+        return width * height;
+    }
+
+    float Rectangle::AspectRatio() const {
+        return height != 0.0f ? width / height : 0.0f;
+    }
+
+    float Rectangle::Perimeter() const {
+        return 2.0f * (width + height);
+    }
+
+    Point Rectangle::Center() const {
+        return Point(x + width / 2.0f, y + height / 2.0f);
+    }
+
+    bool Rectangle::Contains(const Point& point) const {
+        return point.x >= x && point.x <= Right() &&
+            point.y >= y && point.y <= Bottom();
+    }
 
     // ============================================================================
     // Advanced Rectangle Operations
@@ -41,6 +86,19 @@ namespace ImGuiForms {
         return Rectangle(left, top, right - left, bottom - top);
     }
 
+    bool Rectangle::ContainsPoint(const Point& point) const {
+        return point.x >= x && point.x <= Right() &&
+            point.y >= y && point.y <= Bottom();
+    }
+
+    bool Rectangle::ContainsRectangle(const Rectangle& other) const {
+        return other.x >= x && other.y >= y &&
+            other.Right() <= Right() && other.Bottom() <= Bottom();
+    }
+
+    // String representation
+
+
     float Rectangle::Area() const {
         return static_cast<float>(width * height);
     }
@@ -52,38 +110,6 @@ namespace ImGuiForms {
     float Rectangle::AspectRatio() const {
         if (height == 0) return 0.0f;
         return static_cast<float>(width) / static_cast<float>(height);
-    }
-
-    Rectangle Rectangle::FitInside(const Rectangle& container, bool maintainAspectRatio) const {
-        if (container.IsEmpty() || IsEmpty()) {
-            return Rectangle();
-        }
-
-        if (!maintainAspectRatio) {
-            return container;
-        }
-
-        float containerAspect = container.AspectRatio();
-        float thisAspect = AspectRatio();
-
-        int newWidth, newHeight;
-
-        if (thisAspect > containerAspect) {
-            // Fit to width
-            newWidth = container.width;
-            newHeight = static_cast<int>(newWidth / thisAspect);
-        }
-        else {
-            // Fit to height
-            newHeight = container.height;
-            newWidth = static_cast<int>(newHeight * thisAspect);
-        }
-
-        // Center in container
-        int newX = container.x + (container.width - newWidth) / 2;
-        int newY = container.y + (container.height - newHeight) / 2;
-
-        return Rectangle(newX, newY, newWidth, newHeight);
     }
 
     Rectangle Rectangle::CenterIn(const Rectangle& container) const {
@@ -106,138 +132,117 @@ namespace ImGuiForms {
     // Layout Helper Functions
     // ============================================================================
 
-    std::vector<Rectangle> Rectangle::SubdivideHorizontal(const std::vector<float>& ratios) const {
+    std::vector<Rectangle> Rectangle::SubdivideHorizontal(int count) const {
         std::vector<Rectangle> result;
+        if (count <= 0) return result;
 
-        if (ratios.empty()) return result;
-
-        // Normalize ratios
-        float totalRatio = 0.0f;
-        for (float ratio : ratios) {
-            totalRatio += ratio;
+        float subWidth = width / static_cast<float>(count);
+        for (int i = 0; i < count; ++i) {
+            result.push_back(Rectangle(x + static_cast<float>(i) * subWidth, y, subWidth, height));
         }
-
-        if (totalRatio <= 0.0f) return result;
-
-        int currentX = x;
-
-        for (size_t i = 0; i < ratios.size(); ++i) {
-            float normalizedRatio = ratios[i] / totalRatio;
-            int sectionWidth = static_cast<int>(width * normalizedRatio);
-
-            // Adjust last section to account for rounding
-            if (i == ratios.size() - 1) {
-                sectionWidth = (x + width) - currentX;
-            }
-
-            result.emplace_back(currentX, y, sectionWidth, height);
-            currentX += sectionWidth;
-        }
-
         return result;
     }
 
-    std::vector<Rectangle> Rectangle::SubdivideVertical(const std::vector<float>& ratios) const {
+    std::vector<Rectangle> Rectangle::SubdivideVertical(int count) const {
         std::vector<Rectangle> result;
+        if (count <= 0) return result;
 
-        if (ratios.empty()) return result;
-
-        // Normalize ratios
-        float totalRatio = 0.0f;
-        for (float ratio : ratios) {
-            totalRatio += ratio;
+        float subHeight = height / static_cast<float>(count);
+        for (int i = 0; i < count; ++i) {
+            result.push_back(Rectangle(x, y + static_cast<float>(i) * subHeight, width, subHeight));
         }
-
-        if (totalRatio <= 0.0f) return result;
-
-        int currentY = y;
-
-        for (size_t i = 0; i < ratios.size(); ++i) {
-            float normalizedRatio = ratios[i] / totalRatio;
-            int sectionHeight = static_cast<int>(height * normalizedRatio);
-
-            // Adjust last section to account for rounding
-            if (i == ratios.size() - 1) {
-                sectionHeight = (y + height) - currentY;
-            }
-
-            result.emplace_back(x, currentY, width, sectionHeight);
-            currentY += sectionHeight;
-        }
-
         return result;
     }
 
-    Rectangle Rectangle::CreateGrid(int row, int col, int rows, int cols, int spacing) const {
-        if (rows <= 0 || cols <= 0 || row < 0 || col < 0 || row >= rows || col >= cols) {
-            return Rectangle();
+    std::vector<std::vector<Rectangle>> Rectangle::CreateGrid(int rows, int cols) const {
+        std::vector<std::vector<Rectangle>> grid(rows);
+        if (rows <= 0 || cols <= 0) return grid;
+
+        float cellWidth = width / static_cast<float>(cols);
+        float cellHeight = height / static_cast<float>(rows);
+
+        for (int row = 0; row < rows; ++row) {
+            grid[row].resize(cols);
+            for (int col = 0; col < cols; ++col) {
+                grid[row][col] = Rectangle(
+                    x + static_cast<float>(col) * cellWidth,
+                    y + static_cast<float>(row) * cellHeight,
+                    cellWidth,
+                    cellHeight
+                );
+            }
         }
-
-        int totalSpacingX = spacing * (cols - 1);
-        int totalSpacingY = spacing * (rows - 1);
-
-        int cellWidth = (width - totalSpacingX) / cols;
-        int cellHeight = (height - totalSpacingY) / rows;
-
-        int cellX = x + col * (cellWidth + spacing);
-        int cellY = y + row * (cellHeight + spacing);
-
-        return Rectangle(cellX, cellY, cellWidth, cellHeight);
+        return grid;
     }
 
     // ============================================================================
     // Alignment Operations
     // ============================================================================
 
-    Rectangle Rectangle::AlignLeft(const Rectangle& container, int margin) const {
-        return Rectangle(container.x + margin, y, width, height);
+    Rectangle Rectangle::AlignLeft(const Rectangle& container) const {
+        return Rectangle(container.x, y, width, height);
     }
 
-    Rectangle Rectangle::AlignRight(const Rectangle& container, int margin) const {
-        return Rectangle(container.x + container.width - width - margin, y, width, height);
+    Rectangle Rectangle::AlignRight(const Rectangle& container) const {
+        return Rectangle(container.Right() - width, y, width, height);
     }
 
-    Rectangle Rectangle::AlignTop(const Rectangle& container, int margin) const {
-        return Rectangle(x, container.y + margin, width, height);
+    Rectangle Rectangle::AlignTop(const Rectangle& container) const {
+        return Rectangle(x, container.y, width, height);
     }
 
-    Rectangle Rectangle::AlignBottom(const Rectangle& container, int margin) const {
-        return Rectangle(x, container.y + container.height - height - margin, width, height);
+    Rectangle Rectangle::AlignBottom(const Rectangle& container) const {
+        return Rectangle(x, container.Bottom() - height, width, height);
     }
 
     Rectangle Rectangle::AlignCenterHorizontal(const Rectangle& container) const {
-        int centeredX = container.x + (container.width - width) / 2;
-        return Rectangle(centeredX, y, width, height);
+        return Rectangle(container.x + (container.width - width) / 2.0f, y, width, height);
     }
 
     Rectangle Rectangle::AlignCenterVertical(const Rectangle& container) const {
-        int centeredY = container.y + (container.height - height) / 2;
-        return Rectangle(x, centeredY, width, height);
+        return Rectangle(x, container.y + (container.height - height) / 2.0f, width, height);
+    }
+
+    Rectangle Rectangle::CenterIn(const Rectangle& container) const {
+        return Rectangle(
+            container.x + (container.width - width) / 2.0f,
+            container.y + (container.height - height) / 2.0f,
+            width, height
+        );
+    }
+
+    Rectangle Rectangle::ClampTo(const Rectangle& bounds) const {
+        float newX = SafeClamp(x, bounds.x, bounds.Right() - width);
+        float newY = SafeClamp(y, bounds.y, bounds.Bottom() - height);
+        return Rectangle(newX, newY, width, height);
+    }
+
+    Rectangle Rectangle::FitInside(const Rectangle& container) const {
+        if (IsEmpty() || container.IsEmpty()) return Rectangle();
+
+        float scaleX = container.width / width;
+        float scaleY = container.height / height;
+        float scale = SafeMin(scaleX, scaleY);
+
+        Size newSize(width * scale, height * scale);
+        return FromCenter(container.Center(), newSize);
     }
 
     // ============================================================================
     // Distance and Collision Detection
     // ============================================================================
 
-    float Rectangle::DistanceTo(const Rectangle& other) const {
-        // Calculate the closest distance between two rectangles
-        int dx = std::max({ 0, x - (other.x + other.width), other.x - (x + width) });
-        int dy = std::max({ 0, y - (other.y + other.height), other.y - (y + height) });
-
-        return std::sqrt(static_cast<float>(dx * dx + dy * dy));
+    float Rectangle::DistanceToPoint(const Point& point) const {
+        float dx = SafeMax(0.0f, SafeMax(x - point.x, point.x - Right()));
+        float dy = SafeMax(0.0f, SafeMax(y - point.y, point.y - Bottom()));
+        return std::sqrt(dx * dx + dy * dy);
     }
 
-    float Rectangle::DistanceToPoint(const ImVec2& point) const {
-        float px = point.x;
-        float py = point.y;
+    float Rectangle::DistanceTo(const Rectangle& other) const {
+        if (!Intersection(other).IsEmpty()) return 0.0f; // Overlapping
 
-        // Find closest point on rectangle to the given point
-        float closestX = std::clamp(px, static_cast<float>(x), static_cast<float>(x + width));
-        float closestY = std::clamp(py, static_cast<float>(y), static_cast<float>(y + height));
-
-        float dx = px - closestX;
-        float dy = py - closestY;
-
+        float dx = SafeMax(0.0f, SafeMax(x - other.Right(), other.x - Right()));
+        float dy = SafeMax(0.0f, SafeMax(y - other.Bottom(), other.y - Bottom()));
         return std::sqrt(dx * dx + dy * dy);
     }
 
@@ -252,20 +257,12 @@ namespace ImGuiForms {
     // Transformation Operations
     // ============================================================================
 
-    Rectangle Rectangle::Scale(float scaleX, float scaleY, const ImVec2& origin) const {
-        // Scale around a specific origin point
-        float newWidth = width * scaleX;
-        float newHeight = height * scaleY;
-
-        float newX = origin.x + (x - origin.x) * scaleX;
-        float newY = origin.y + (y - origin.y) * scaleY;
-
-        return Rectangle(static_cast<int>(newX), static_cast<int>(newY),
-            static_cast<int>(newWidth), static_cast<int>(newHeight));
+    Rectangle Rectangle::Scale(float factor) const {
+        return Rectangle(x * factor, y * factor, width * factor, height * factor);
     }
 
-    Rectangle Rectangle::Scale(float scale) const {
-        return Scale(scale, scale, Center());
+    Rectangle Rectangle::Scale(float xFactor, float yFactor) const {
+        return Rectangle(x * xFactor, y * yFactor, width * xFactor, height * yFactor);
     }
 
     Rectangle Rectangle::Rotate90() const {
@@ -278,31 +275,25 @@ namespace ImGuiForms {
     // ============================================================================
 
     std::string Rectangle::ToString() const {
-        std::ostringstream oss;
-        oss << "Rectangle(" << x << ", " << y << ", " << width << ", " << height << ")";
-        return oss.str();
+        return "Rectangle(" + std::to_string(x) + ", " + std::to_string(y) +
+            ", " + std::to_string(width) + ", " + std::to_string(height) + ")";
     }
 
-    void Rectangle::DebugPrint(const std::string& label) const {
-        std::cout << label << ": " << ToString()
-            << " [Area: " << Area()
-            << ", Aspect: " << AspectRatio() << "]" << std::endl;
+    void Rectangle::DebugPrint() const {
+        printf("Rectangle: x=%.2f, y=%.2f, width=%.2f, height=%.2f\n", x, y, width, height);
     }
 
-    Rectangle Rectangle::FromTwoPoints(const ImVec2& point1, const ImVec2& point2) {
-        int left = static_cast<int>(std::min(point1.x, point2.x));
-        int top = static_cast<int>(std::min(point1.y, point2.y));
-        int right = static_cast<int>(std::max(point1.x, point2.x));
-        int bottom = static_cast<int>(std::max(point1.y, point2.y));
-
-        return Rectangle(left, top, right - left, bottom - top);
+    Rectangle Rectangle::FromTwoPoints(const Point& p1, const Point& p2) {
+        float minX = SafeMin(p1.x, p2.x);
+        float minY = SafeMin(p1.y, p2.y);
+        float maxX = SafeMax(p1.x, p2.x);
+        float maxY = SafeMax(p1.y, p2.y);
+        return Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
 
-    Rectangle Rectangle::FromCenter(const ImVec2& center, int width, int height) {
-        int x = static_cast<int>(center.x - width / 2);
-        int y = static_cast<int>(center.y - height / 2);
-
-        return Rectangle(x, y, width, height);
+    Rectangle Rectangle::FromCenter(const Point& center, const Size& size) {
+        return Rectangle(center.x - size.width / 2.0f, center.y - size.height / 2.0f,
+            size.width, size.height);
     }
 
     // ============================================================================
@@ -403,10 +394,10 @@ namespace ImGuiForms {
 
             for (size_t i = 1; i < rectangles.size(); ++i) {
                 const auto& rect = rectangles[i];
-                minX = std::min(minX, rect.x);
-                minY = std::min(minY, rect.y);
-                maxX = std::max(maxX, rect.x + rect.width);
-                maxY = std::max(maxY, rect.y + rect.height);
+                minX = SafeMin(minX, rect.x);
+                minY = SafeMin(minY, rect.y);
+                maxX = SafeMax(maxX, rect.x + rect.width);
+                maxY = SafeMax(maxY, rect.y + rect.height);
             }
 
             return Rectangle(minX, minY, maxX - minX, maxY - minY);

@@ -126,7 +126,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -145,7 +145,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -163,10 +163,12 @@
     <ClInclude Include="include\ImGuiForms\Components\Panel.h" />
     <ClInclude Include="include\ImGuiForms\Core\Component.h" />
     <ClInclude Include="include\ImGuiForms\Core\Coordinate.h" />
+    <ClInclude Include="include\ImGuiForms\Core\Point.h" />
     <ClInclude Include="include\ImGuiForms\Core\Rectangle.h" />
     <ClInclude Include="include\ImGuiForms\Core\Size.h" />
     <ClInclude Include="include\ImGuiForms\ImGuiForms.h" />
     <ClInclude Include="include\SDL.h" />
+    <ClInclude Include="src\Core\Size.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Components\Label.cpp" />
