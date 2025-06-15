@@ -1,5 +1,4 @@
 #include "ImGuiForms/Core/Size.h"
-#include <string>
 
 namespace ImGuiForms {
 

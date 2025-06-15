@@ -9,34 +9,34 @@
 namespace ImGuiForms {
 
     /**
-     * @brief A simple container component that holds a single child component
+     * @brief A container component that holds other components
      *
-     * Panel is the most basic container - it simply renders its child component
-     * within its bounds. Useful for grouping and applying consistent sizing.
+     * Panel provides a simple container for other UI components.
+     * It can manage layout and rendering of child components.
      */
     class Panel : public Component {
     private:
         std::unique_ptr<Component> content;
-        Size panelSize = Size::Parent();
+        Size panelSize;
 
     public:
         /**
-         * @brief Constructs a Panel with optional content
-         * @param child The child component to contain (takes ownership)
+         * @brief Constructs a Panel with content
+         * @param content The component to contain
          */
         Panel(std::unique_ptr<Component> content);
 
         /**
-         * @brief Sets the child component (takes ownership)
-         * @param child The new child component
+         * @brief Sets the content of this panel
+         * @param content The new content component
          */
-        void SetContent(std::unique_ptr<Component> child);
+        void SetContent(std::unique_ptr<Component> content);
 
         /**
-         * @brief Gets a pointer to the child component (retains ownership)
-         * @return Pointer to child component, or nullptr if no child
+         * @brief Gets the content component
+         * @return Pointer to the content component
          */
-        Component* GetContent();
+        Component* GetContent() const;
 
         /**
          * @brief Sets the size of this panel
@@ -48,66 +48,43 @@ namespace ImGuiForms {
          * @brief Gets the size specification for this panel
          * @return The size specification
          */
-        Size GetSize();
+        Size GetSize() const override;
 
     protected:
         /**
-         * @brief Renders the panel by rendering its child component
+         * @brief Renders the panel and its content
          * @param contentRect The rectangle area to draw in
          */
-        void UpdateInternal(const Rectangle& contentRect) override {
-            if (content && content->visible) {
-                content->Update(contentRect);
-            }
-        }
+        void UpdateInternal(const Rectangle& contentRect) override;
 
         /**
-         * @brief Propagates tab inactive state to child component
+         * @brief Calculates the width needed for the panel content
          */
-        void SetTabInactiveCore() override {
-            if (content) {
-                content->SetTabInactive();
-            }
-        }
+        int GetContentWidth(int parentWidth, int parentHeight, float layoutCorrection = 1.0f) const override;
 
         /**
-         * @brief Calculates content width if size is content-aligned
+         * @brief Calculates the height needed for the panel content
          */
-        int GetContentWidth(int parentWidth, int parentHeight, float layoutCorrection = 1.0f) const override {
-            if (content) {
-                return content->GetWidth(parentWidth, parentHeight, layoutCorrection);
-            }
-            return 0;
-        }
-
-        /**
-         * @brief Calculates content height if size is content-aligned
-         */
-        int GetContentHeight(int parentWidth, int parentHeight, float layoutCorrection = 1.0f) const override {
-            if (content) {
-                return content->GetHeight(parentWidth, parentHeight, layoutCorrection);
-            }
-            return 0;
-        }
+        int GetContentHeight(int parentWidth, int parentHeight, float layoutCorrection = 1.0f) const override;
     };
 
     /**
-     * @brief Helper function to create a Panel with content
-     * @param child The child component (takes ownership)
+     * @brief Helper function to create a Panel
+     * @param content The content component
      * @return Unique pointer to the new Panel
      */
-    inline std::unique_ptr<Panel> CreatePanel(std::unique_ptr<Component> child = nullptr) {
-        return std::make_unique<Panel>(std::move(child));
+    inline std::unique_ptr<Panel> CreatePanel(std::unique_ptr<Component> content) {
+        return std::make_unique<Panel>(std::move(content));
     }
 
     /**
      * @brief Helper function to create a Panel with specific size
      * @param size The size specification for the panel
-     * @param child Optional child component (takes ownership)
+     * @param content The content component
      * @return Unique pointer to the new Panel
      */
-    inline std::unique_ptr<Panel> CreatePanel(const Size& size, std::unique_ptr<Component> child = nullptr) {
-        auto panel = std::make_unique<Panel>(std::move(child));
+    inline std::unique_ptr<Panel> CreatePanel(const Size& size, std::unique_ptr<Component> content) {
+        auto panel = std::make_unique<Panel>(std::move(content));
         panel->SetSize(size);
         return panel;
     }
