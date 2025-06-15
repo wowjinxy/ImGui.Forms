@@ -1,0 +1,174 @@
+ImGuiForms/
+├── CMakeLists.txt                          # Main build configuration
+├── README.md                               # Project documentation
+├── LICENSE                                 # MIT or similar license
+├── .gitignore                             # Git ignore file
+│
+├── include/                               # Public headers (API)
+│   └── ImGuiForms/
+│       ├── ImGuiForms.h                   # Single include header
+│       │
+│       ├── Core/                          # Core types and utilities
+│       │   ├── Coordinate.h
+│       │   ├── Size.h
+│       │   ├── Rectangle.h
+│       │   └── Component.h                # Base component class
+│       │
+│       ├── Components/                    # Basic UI components
+│       │   ├── Panel.h
+│       │   ├── Label.h
+│       │   ├── Button.h                   # Future: Button component
+│       │   ├── TextBox.h                  # Future: Text input
+│       │   └── Image.h                    # Future: Image display
+│       │
+│       ├── Layouts/                       # Layout containers
+│       │   ├── StackLayout.h              # Future: Linear layout
+│       │   ├── TableLayout.h              # Future: Grid layout
+│       │   ├── ZLayout.h                  # Future: Wrapping layout
+│       │   └── DockLayout.h               # Future: Dock layout
+│       │
+│       ├── Text/                          # Text editing components
+│       │   ├── TextEditor.h               # Future: Rich text editor
+│       │   └── CodeEditor.h               # Future: Syntax highlighting
+│       │
+│       ├── Events/                        # Event system
+│       │   ├── EventArgs.h                # Event argument types
+│       │   ├── MouseEvents.h              # Mouse event handling
+│       │   ├── KeyboardEvents.h           # Keyboard event handling
+│       │   └── DragDropEvents.h           # Drag & drop support
+│       │
+│       ├── Styling/                       # Theming and styling
+│       │   ├── Theme.h                    # Theme definitions
+│       │   ├── Colors.h                   # Color utilities
+│       │   └── Fonts.h                    # Font management
+│       │
+│       └── Utils/                         # Utility functions
+│           ├── IdManager.h                # Component ID management
+│           ├── TextMeasure.h              # Text size calculations
+│           └── MathUtils.h                # Math helper functions
+│
+├── src/                                   # Implementation files
+│   ├── Core/
+│   │   ├── Component.cpp                  # Component base implementation
+│   │   └── Rectangle.cpp                  # Rectangle utilities (if needed)
+│   │
+│   ├── Components/
+│   │   ├── Panel.cpp                      # Panel implementation
+│   │   ├── Label.cpp                      # Label implementation
+│   │   ├── Button.cpp                     # Future: Button logic
+│   │   └── TextBox.cpp                    # Future: Text input logic
+│   │
+│   ├── Layouts/
+│   │   ├── StackLayout.cpp                # Future: Stack layout logic
+│   │   ├── TableLayout.cpp                # Future: Table layout logic
+│   │   └── ZLayout.cpp                    # Future: Z-order layout logic
+│   │
+│   ├── Text/
+│   │   └── TextEditor.cpp                 # Future: Text editor implementation
+│   │
+│   ├── Events/
+│   │   ├── MouseEvents.cpp                # Mouse event processing
+│   │   ├── KeyboardEvents.cpp             # Keyboard event processing
+│   │   └── DragDropEvents.cpp             # Drag & drop implementation
+│   │
+│   ├── Styling/
+│   │   ├── Theme.cpp                      # Theme management
+│   │   ├── Colors.cpp                     # Color conversion utilities
+│   │   └── Fonts.cpp                      # Font loading and management
+│   │
+│   └── Utils/
+│       ├── IdManager.cpp                  # ID generation and cleanup
+│       ├── TextMeasure.cpp                # Text measurement implementation
+│       └── MathUtils.cpp                  # Math utility implementations
+│
+├── examples/                              # Example applications
+│   ├── CMakeLists.txt                     # Examples build config
+│   │
+│   ├── BasicExample/                      # Simple usage demo
+│   │   ├── main.cpp                       # Basic example main
+│   │   └── CMakeLists.txt
+│   │
+│   ├── LayoutDemo/                        # Layout system demo
+│   │   ├── main.cpp                       # Layout showcase
+│   │   ├── LayoutDemoApp.h
+│   │   ├── LayoutDemoApp.cpp
+│   │   └── CMakeLists.txt
+│   │
+│   ├── TextEditor/                        # Text editor example
+│   │   ├── main.cpp                       # Text editing demo
+│   │   ├── TextEditorApp.h
+│   │   ├── TextEditorApp.cpp
+│   │   └── CMakeLists.txt
+│   │
+│   └── Styling/                           # Theming example
+│       ├── main.cpp                       # Theme and styling demo
+│       ├── StylingApp.h
+│       ├── StylingApp.cpp
+│       └── CMakeLists.txt
+│
+├── tests/                                 # Unit tests
+│   ├── CMakeLists.txt                     # Test build configuration
+│   │
+│   ├── Core/                              # Core component tests
+│   │   ├── test_coordinate.cpp            # Coordinate struct tests
+│   │   ├── test_size.cpp                  # Size system tests
+│   │   ├── test_rectangle.cpp             # Rectangle tests
+│   │   └── test_component.cpp             # Component base tests
+│   │
+│   ├── Components/                        # Component tests
+│   │   ├── test_panel.cpp                 # Panel component tests
+│   │   ├── test_label.cpp                 # Label component tests
+│   │   └── test_button.cpp                # Future: Button tests
+│   │
+│   ├── Layouts/                           # Layout tests
+│   │   ├── test_stack_layout.cpp          # Future: Stack layout tests
+│   │   └── test_table_layout.cpp          # Future: Table layout tests
+│   │
+│   └── Utils/                             # Utility tests
+│       ├── test_id_manager.cpp            # ID management tests
+│       └── test_text_measure.cpp          # Text measurement tests
+│
+├── docs/                                  # Documentation
+│   ├── README.md                          # Getting started guide
+│   ├── API.md                             # API reference
+│   ├── Examples.md                        # Example walkthrough
+│   ├── Migration.md                       # C# to C++ migration guide
+│   │
+│   ├── images/                            # Screenshots and diagrams
+│   │   ├── architecture.png               # Framework architecture
+│   │   ├── sizing_demo.png                # Sizing system demo
+│   │   └── layout_examples.png            # Layout examples
+│   │
+│   └── tutorials/                         # Step-by-step tutorials
+│       ├── 01-getting-started.md          # Basic setup
+│       ├── 02-components.md               # Creating components
+│       ├── 03-layouts.md                  # Using layouts
+│       ├── 04-styling.md                  # Theming and styling
+│       └── 05-custom-components.md        # Creating custom components
+│
+├── third_party/                           # External dependencies
+│   ├── imgui/                             # Dear ImGui (as submodule)
+│   │   ├── imgui.h
+│   │   ├── imgui.cpp
+│   │   └── ...
+│   │
+│   └── CMakeLists.txt                     # Third-party build config
+│
+├── tools/                                 # Development tools
+│   ├── generate_single_header.py          # Create single-header version
+│   ├── format_code.sh                     # Code formatting script
+│   └── check_includes.py                  # Include dependency checker
+│
+└── assets/                                # Asset files for examples
+    ├── fonts/                             # Example fonts
+    │   ├── Roboto-Regular.ttf
+    │   └── SourceCodePro-Regular.ttf
+    │
+    ├── images/                            # Example images
+    │   ├── logo.png
+    │   └── demo_image.jpg
+    │
+    └── themes/                            # Example theme files
+        ├── dark_theme.json
+        ├── light_theme.json
+        └── custom_theme.json

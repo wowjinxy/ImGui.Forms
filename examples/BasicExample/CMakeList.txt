@@ -1,0 +1,23 @@
+# Basic Example CMakeLists.txt
+
+# Create the basic example executable
+add_imguiforms_example(BasicExample main.cpp)
+
+# Add any additional source files if needed
+# target_sources(BasicExample PRIVATE 
+#     additional_file.cpp
+# )
+
+# Example-specific compile definitions
+target_compile_definitions(BasicExample PRIVATE
+    EXAMPLE_NAME="Basic ImGuiForms Example"
+)
+
+# Set example-specific properties
+set_target_properties(BasicExample PROPERTIES
+    OUTPUT_NAME "basic_example"
+    DEBUG_POSTFIX "_d"
+)
+
+# Add to examples group in IDEs
+set_target_properties(BasicExample PROPERTIES FOLDER "Examples")

@@ -1,0 +1,56 @@
+# Examples CMakeLists.txt
+
+# Find required packages for examples
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+
+# Common settings for all examples
+function(add_imguiforms_example target_name source_file)
+    add_executable(${target_name} ${source_file})
+    
+    target_link_libraries(${target_name} 
+        ImGuiForms
+        OpenGL::GL
+        glfw
+    )
+    
+    # Set output directory
+    set_target_properties(${target_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples
+    )
+    
+    # Copy assets if they exist
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../assets")
+        add_custom_command(TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/../assets
+            $<TARGET_FILE_DIR:${target_name}>/assets
+        )
+    endif()
+endfunction()
+
+# Basic Example
+add_subdirectory(BasicExample)
+
+# Layout Demo
+add_subdirectory(LayoutDemo)
+
+# Text Editor Example (when implemented)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/TextEditor/CMakeLists.txt")
+    add_subdirectory(TextEditor)
+endif()
+
+# Styling Example (when implemented)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Styling/CMakeLists.txt")
+    add_subdirectory(Styling)
+endif()
+
+# Print summary
+message(STATUS "ImGuiForms Examples:")
+get_property(example_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(target ${example_targets})
+    get_target_property(target_type ${target} TYPE)
+    if(target_type STREQUAL "EXECUTABLE")
+        message(STATUS "  - ${target}")
+    endif()
+endforeach()
