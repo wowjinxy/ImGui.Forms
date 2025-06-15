@@ -155,3 +155,4 @@ install/
 # Packaging artifacts
 packages/
 *.nupkg
+*.tlog
